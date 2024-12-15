@@ -137,6 +137,12 @@ def detect_unet_config(state_dict, key_prefix):
         dit_config = {}
         dit_config["image_model"] = "flux"
         dit_config["in_channels"] = 16
+        patch_size = 2
+        dit_config["patch_size"] = patch_size
+        in_key = "{}img_in.weight".format(key_prefix)
+        if in_key in state_dict_keys:
+            dit_config["in_channels"] = state_dict[in_key].shape[1] // (patch_size * patch_size)
+        dit_config["out_channels"] = 16
         dit_config["vec_in_dim"] = 768
         dit_config["context_in_dim"] = 4096
         dit_config["hidden_size"] = 3072
@@ -177,6 +183,10 @@ def detect_unet_config(state_dict, key_prefix):
         dit_config["rope_theta"] = 10000.0
         return dit_config
 
+    if '{}adaln_single.emb.timestep_embedder.linear_1.bias'.format(key_prefix) in state_dict_keys: #Lightricks ltxv
+        dit_config = {}
+        dit_config["image_model"] = "ltxv"
+        return dit_config
 
     if '{}input_blocks.0.0.weight'.format(key_prefix) not in state_dict_keys:
         return None
@@ -321,8 +331,9 @@ def model_config_from_unet(state_dict, unet_key_prefix, use_base_if_no_match=Fal
     if model_config is None and use_base_if_no_match:
         model_config = comfy.supported_models_base.BASE(unet_config)
 
-    scaled_fp8_weight = state_dict.get("{}scaled_fp8".format(unet_key_prefix), None)
-    if scaled_fp8_weight is not None:
+    scaled_fp8_key = "{}scaled_fp8".format(unet_key_prefix)
+    if scaled_fp8_key in state_dict:
+        scaled_fp8_weight = state_dict.pop(scaled_fp8_key)
         model_config.scaled_fp8 = scaled_fp8_weight.dtype
         if model_config.scaled_fp8 == torch.float32:
             model_config.scaled_fp8 = torch.float8_e4m3fn
