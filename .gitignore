@@ -6,7 +6,6 @@ input
 /models/
 /temp/
 /.vs
-.vscode/
 .idea/
 venv/
 .venv/

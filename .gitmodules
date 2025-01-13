@@ -1,12 +1,12 @@
 [submodule "custom_nodes/wlsh_nodes"]
 	path = custom_nodes/wlsh_nodes
-	url = https://github.com/wallish77/wlsh_nodes
+	url = https://github.com/wallish77/wlsh_nodes.git
 [submodule "custom_nodes/ComfyUI-Better-Strings"]
 	path = custom_nodes/ComfyUI-Better-Strings
 	url = https://github.com/HaydenReeve/ComfyUI-Better-Strings.git
 [submodule "custom_nodes/ComfyUI-Impact-Pack"]
 	path = custom_nodes/ComfyUI-Impact-Pack
-	url = https://github.com/ltdrdata/ComfyUI-Impact-Pack
+	url = https://github.com/ltdrdata/ComfyUI-Impact-Pack.git
 [submodule "custom_nodes/ComfyUI-Manager"]
 	path = custom_nodes/ComfyUI-Manager
 	url = https://github.com/ltdrdata/ComfyUI-Manager.git
@@ -15,13 +15,16 @@
 	url = https://github.com/huchenlei/ComfyUI-openpose-editor.git
 [submodule "custom_nodes/ComfyUI_essentials"]
 	path = custom_nodes/ComfyUI_essentials
-	url = https://github.com/cubiq/ComfyUI_essentials
+	url = https://github.com/cubiq/ComfyUI_essentials.git
 [submodule "custom_nodes/cg-image-picker"]
 	path = custom_nodes/cg-image-picker
 	url = https://github.com/chrisgoringe/cg-image-picker.git
 [submodule "custom_nodes/cg-use-everywhere"]
 	path = custom_nodes/cg-use-everywhere
-	url = https://github.com/chrisgoringe/cg-use-everywhere
+	url = https://github.com/chrisgoringe/cg-use-everywhere.git
 [submodule "custom_nodes/comfyui_controlnet_aux"]
 	path = custom_nodes/comfyui_controlnet_aux
-	url = https://github.com/Fannovel16/comfyui_controlnet_aux
+	url = https://github.com/Fannovel16/comfyui_controlnet_aux.git
+[submodule "custom_nodes/comfyui-trainer"]
+	path = custom_nodes/comfyui-trainer
+	url = file://./custom_nodes/comfyui-trainer

@@ -1,0 +1,45 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ComfyUI: Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--port", "8188",
+                "--disable-cuda-malloc",
+                "--input-directory", "/mnt/z/Program Files/StableDiffusion/inputs",
+                "--output-directory", "/mnt/z/Program Files/StableDiffusion/outputs/comfyui"
+            ],
+            "cwd":"${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "preLaunchTask": "make: Make all"
+        },
+        {
+            "name": "ComfyUI: Client",
+            "type": "msedge",
+            "request": "launch",
+            "url": "http://localhost:8188",
+            "webRoot": "${workspaceFolder}",
+            "runtimeExecutable": "dev",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+              "webpack://*": "${workspaceFolder}/custom_nodes/comfyui-trainer/*",
+            }
+        },
+    ],
+    "compounds": [
+      {
+        "name": "ComfyUI: Server & Client",
+        "configurations": [
+          "ComfyUI: Server",
+          "ComfyUI: Client"
+        ]
+      }
+    ]
+}
