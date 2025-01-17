@@ -27,7 +27,7 @@
 	url = https://github.com/Fannovel16/comfyui_controlnet_aux.git
 [submodule "custom_nodes/comfyui-trainer"]
 	path = custom_nodes/comfyui-trainer
-	url = file://./custom_nodes/comfyui-trainer
+	url = https://github.com/love2hina-net/comfyui-trainer.git
 [submodule "custom_nodes/ComfyUI-Impact-Subpack"]
 	path = custom_nodes/ComfyUI-Impact-Subpack
 	url = https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git
