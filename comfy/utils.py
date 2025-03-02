@@ -29,17 +29,39 @@ import itertools
 from torch.nn.functional import interpolate
 from einops import rearrange
 
+ALWAYS_SAFE_LOAD = False
+if hasattr(torch.serialization, "add_safe_globals"):  # TODO: this was added in pytorch 2.4, the unsafe path should be removed once earlier versions are deprecated
+    class ModelCheckpoint:
+        pass
+    ModelCheckpoint.__module__ = "pytorch_lightning.callbacks.model_checkpoint"
+
+    from numpy.core.multiarray import scalar
+    from numpy import dtype
+    from numpy.dtypes import Float64DType
+    from _codecs import encode
+
+    torch.serialization.add_safe_globals([ModelCheckpoint, scalar, dtype, Float64DType, encode])
+    ALWAYS_SAFE_LOAD = True
+    logging.info("Checkpoint files will always be loaded safely.")
+else:
+    logging.info("Warning, you are using an old pytorch version and some ckpt/pt files might be loaded unsafely. Upgrading to 2.4 or above is recommended.")
+
 def load_torch_file(ckpt, safe_load=False, device=None):
     if device is None:
         device = torch.device("cpu")
     if ckpt.lower().endswith(".safetensors") or ckpt.lower().endswith(".sft"):
-        sd = safetensors.torch.load_file(ckpt, device=device.type)
+        try:
+            sd = safetensors.torch.load_file(ckpt, device=device.type)
+        except Exception as e:
+            if len(e.args) > 0:
+                message = e.args[0]
+                if "HeaderTooLarge" in message:
+                    raise ValueError("{}\n\nFile path: {}\n\nThe safetensors file is corrupt or invalid. Make sure this is actually a safetensors file and not a ckpt or pt or other filetype.".format(message, ckpt))
+                if "MetadataIncompleteBuffer" in message:
+                    raise ValueError("{}\n\nFile path: {}\n\nThe safetensors file is corrupt/incomplete. Check the file size and make sure you have copied/downloaded it correctly.".format(message, ckpt))
+            raise e
     else:
-        if safe_load:
-            if not 'weights_only' in torch.load.__code__.co_varnames:
-                logging.warning("Warning torch.load doesn't support weights_only on this pytorch version, loading unsafely.")
-                safe_load = False
-        if safe_load:
+        if safe_load or ALWAYS_SAFE_LOAD:
             pl_sd = torch.load(ckpt, map_location=device, weights_only=True)
         else:
             pl_sd = torch.load(ckpt, map_location=device, pickle_module=comfy.checkpoint_pickle)
@@ -455,7 +477,7 @@ def pixart_to_diffusers(mmdit_config, output_prefix=""):
 
     for k in PIXART_MAP_BASIC:
         key_map[k[1]] = "{}{}".format(output_prefix, k[0])
-    
+
     return key_map
 
 def auraflow_to_diffusers(mmdit_config, output_prefix=""):
@@ -693,7 +715,25 @@ def copy_to_param(obj, attr, value):
     prev = getattr(obj, attrs[-1])
     prev.data.copy_(value)
 
-def get_attr(obj, attr):
+def get_attr(obj, attr: str):
+    """Retrieves a nested attribute from an object using dot notation.
+
+    Args:
+        obj: The object to get the attribute from
+        attr (str): The attribute path using dot notation (e.g. "model.layer.weight")
+
+    Returns:
+        The value of the requested attribute
+
+    Example:
+        model = MyModel()
+        weight = get_attr(model, "layer1.conv.weight")
+        # Equivalent to: model.layer1.conv.weight
+
+    Important:
+        Always prefer `comfy.model_patcher.ModelPatcher.get_model_object` when
+        accessing nested model objects under `ModelPatcher.model`.
+    """
     attrs = attr.split(".")
     for name in attrs:
         obj = getattr(obj, name)
@@ -702,7 +742,7 @@ def get_attr(obj, attr):
 def bislerp(samples, width, height):
     def slerp(b1, b2, r):
         '''slerps batches b1, b2 according to ratio r, batches should be flat e.g. NxC'''
-        
+
         c = b1.shape[-1]
 
         #norms
@@ -727,16 +767,16 @@ def bislerp(samples, width, height):
         res *= (b1_norms * (1.0-r) + b2_norms * r).expand(-1,c)
 
         #edge cases for same or polar opposites
-        res[dot > 1 - 1e-5] = b1[dot > 1 - 1e-5] 
+        res[dot > 1 - 1e-5] = b1[dot > 1 - 1e-5]
         res[dot < 1e-5 - 1] = (b1 * (1.0-r) + b2 * r)[dot < 1e-5 - 1]
         return res
-    
+
     def generate_bilinear_data(length_old, length_new, device):
         coords_1 = torch.arange(length_old, dtype=torch.float32, device=device).reshape((1,1,1,-1))
         coords_1 = torch.nn.functional.interpolate(coords_1, size=(1, length_new), mode="bilinear")
         ratios = coords_1 - coords_1.floor()
         coords_1 = coords_1.to(torch.int64)
-        
+
         coords_2 = torch.arange(length_old, dtype=torch.float32, device=device).reshape((1,1,1,-1)) + 1
         coords_2[:,:,:,-1] -= 1
         coords_2 = torch.nn.functional.interpolate(coords_2, size=(1, length_new), mode="bilinear")
@@ -747,7 +787,7 @@ def bislerp(samples, width, height):
     samples = samples.float()
     n,c,h,w = samples.shape
     h_new, w_new = (height, width)
-    
+
     #linear w
     ratios, coords_1, coords_2 = generate_bilinear_data(w, w_new, samples.device)
     coords_1 = coords_1.expand((n, c, h, -1))
@@ -893,7 +933,7 @@ def tiled_scale_multidim(samples, function, tile=(64, 64), overlap=8, upscale_am
         out = torch.zeros([s.shape[0], out_channels] + mult_list_upscale(s.shape[2:]), device=output_device)
         out_div = torch.zeros([s.shape[0], out_channels] + mult_list_upscale(s.shape[2:]), device=output_device)
 
-        positions = [range(0, s.shape[d+2], tile[d] - overlap[d]) if s.shape[d+2] > tile[d] else [0] for d in range(dims)]
+        positions = [range(0, s.shape[d+2] - overlap[d], tile[d] - overlap[d]) if s.shape[d+2] > tile[d] else [0] for d in range(dims)]
 
         for it in itertools.product(*positions):
             s_in = s

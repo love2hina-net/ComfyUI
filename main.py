@@ -17,7 +17,7 @@ if __name__ == "__main__":
     os.environ['DO_NOT_TRACK'] = '1'
 
 
-setup_logger(log_level=args.verbose)
+setup_logger(log_level=args.verbose, use_stdout=args.log_stdout)
 
 def apply_custom_paths():
     # extra model paths
@@ -138,6 +138,8 @@ import server
 from server import BinaryEventTypes
 import nodes
 import comfy.model_management
+import comfyui_version
+
 
 def cuda_malloc_warning():
     device = comfy.model_management.get_torch_device()
@@ -211,7 +213,9 @@ async def run(server_instance, address='', port=8188, verbose=True, call_on_star
     addresses = []
     for addr in address.split(","):
         addresses.append((addr, port))
-    await asyncio.gather(server_instance.start_multi_address(addresses, call_on_start), server_instance.publish_loop())
+    await asyncio.gather(
+        server_instance.start_multi_address(addresses, call_on_start, verbose), server_instance.publish_loop()
+    )
 
 
 def hijack_progress(server_instance):
@@ -290,6 +294,7 @@ def start_comfyui(asyncio_loop=None):
 
 if __name__ == "__main__":
     # Running directly, just start ComfyUI.
+    logging.info("ComfyUI version: {}".format(comfyui_version.__version__))
     event_loop, _, start_all_func = start_comfyui()
     try:
         event_loop.run_until_complete(start_all_func())
