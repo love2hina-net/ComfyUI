@@ -16,18 +16,15 @@
 [submodule "custom_nodes/ComfyUI_essentials"]
 	path = custom_nodes/ComfyUI_essentials
 	url = https://github.com/cubiq/ComfyUI_essentials.git
-[submodule "custom_nodes/cg-image-picker"]
-	path = custom_nodes/cg-image-picker
-	url = https://github.com/chrisgoringe/cg-image-picker.git
 [submodule "custom_nodes/cg-use-everywhere"]
 	path = custom_nodes/cg-use-everywhere
 	url = https://github.com/chrisgoringe/cg-use-everywhere.git
 [submodule "custom_nodes/comfyui_controlnet_aux"]
 	path = custom_nodes/comfyui_controlnet_aux
 	url = https://github.com/Fannovel16/comfyui_controlnet_aux.git
-[submodule "custom_nodes/comfyui-trainer"]
-	path = custom_nodes/comfyui-trainer
-	url = https://github.com/love2hina-net/comfyui-trainer.git
 [submodule "custom_nodes/ComfyUI-Impact-Subpack"]
 	path = custom_nodes/ComfyUI-Impact-Subpack
 	url = https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git
+[submodule "custom_nodes/cg-image-filter"]
+	path = custom_nodes/cg-image-filter
+	url = https://github.com/chrisgoringe/cg-image-filter.git
