@@ -28,3 +28,9 @@
 [submodule "custom_nodes/cg-image-filter"]
 	path = custom_nodes/cg-image-filter
 	url = https://github.com/chrisgoringe/cg-image-filter.git
+[submodule "custom_nodes/ComfyUI-Local-Translator"]
+	path = custom_nodes/ComfyUI-Local-Translator
+	url = https://github.com/love2hina-net/ComfyUI-Local-Translator.git
+[submodule "custom_nodes/ComfyUI-GGUF"]
+	path = custom_nodes/ComfyUI-GGUF
+	url = https://github.com/city96/ComfyUI-GGUF.git
